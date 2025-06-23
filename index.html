@@ -581,37 +581,115 @@
             <p>Модель реализована на языке C++ с использованием следующих алгоритмов:</p>
             
             <div class="code-block">
-<pre>#include &lt;iostream&gt;
-#include &lt;cmath&gt;
+<pre>#include <iostream>
+#include <cmath>
+#include <fstream>
+#include <map>
+#include <string>
+#include <sstream>
 using namespace std;
 
-// Параметры модели
-double b = 400, a0 = 0.02, l = 80, L = 40, lam = 1;
-double dP = 2 * pow(10, 6), mu = 8 * pow(10, -3), Q = 0.001;
+// Структура для хранения входных данных
+struct InputData {
+    // Константы
+    double b, a0, l, L, lam, dP, mu, Q;
+    // Переменные (проницаемость и высота пластов)
+    double k[3], h[3];
+};
 
-// Функция расчета скоростей фильтрации
-static int Us(double* V, double* g, double* U, double* k, 
-             double* h, int n, double H, double t) {
+// Функция для чтения данных из файла
+InputData readInput(const string& filename) {
+    ifstream file(filename);
+    InputData data;
+    map<string, double*> params = {
+        {"b", &data.b}, {"a0", &data.a0}, {"l", &data.l}, {"L", &data.L},
+        {"lam", &data.lam}, {"dP", &data.dP}, {"mu", &data.mu}, {"Q", &data.Q},
+        {"k1", &data.k[0]}, {"k2", &data.k[1]}, {"k3", &data.k[2]},
+        {"h1", &data.h[0]}, {"h2", &data.h[1]}, {"h3", &data.h[2]}
+    };
+
+    if (!file.is_open()) {
+        cerr << "Ошибка: Не удалось открыть файл " << filename << endl;
+        exit(1);
+    }
+
+    string line;
+    while (getline(file, line)) {
+        size_t eqPos = line.find('=');
+        if (eqPos == string::npos) continue;
+
+        string key = line.substr(0, eqPos);
+        double value = stod(line.substr(eqPos + 1));
+
+        if (params.count(key)) {
+            *params[key] = value;
+        }
+    }
+    file.close();
+    return data;
+}
+
+void Us(double *V, double *g, double *U, double *k, double *h, int n, double H, double t, 
+        double lam, double L, double Q, double b, double a0, double dP, double mu) {
     double LA = lam * L;
     double T0 = (Q * t) / (2 * L * H * l);
-    
     for (int i = 0; i < n; i++) {
         V[i] = (k[i] * H) / (k[0] * h[0] + k[1] * h[1] + k[2] * h[2]);
         g[i] = 1 + b * V[i] * a0 * T0 * (1 - exp(-LA));
         U[i] = -(k[i] * dP) / (mu * g[i] * L);
     }
-    return *U;
 }
 
 int main() {
-    // Инициализация параметров
+    setlocale(LC_ALL, "Russian");
+
+    // Чтение всех входных данных из файла
+    InputData input = readInput("input.txt");
     int n = 3;
-    double* k = new double[n], *h = new double[n];
-    double* V = new double[n], *g = new double[n], *U = new double[n];
-    
-    // Ввод данных и расчеты
-    // ...
-    
+    double* k = new double[n];   // Проницаемость (м²)
+    double* h = new double[n];   // Высота (м)
+    double* V = new double[n];   // Безразмерная проницаемость
+    double* g = new double[n];   // Дарси
+    double* U = new double[n];   // Скорость (м/с)
+
+    // Заполнение k и h (переводим проницаемость из Дарси в м²)
+    for (int i = 0; i < n; i++) {
+        k[i] = input.k[i] * 1e-12;
+        h[i] = input.h[i];
+    }
+
+    double H = 0, t0 = 0, tk = 14;
+    for (int i = 0; i < n; i++) H += h[i];
+
+    // Вычисление
+    double sum = 0, S0d = 0, S1d = 0, U0a = 0, U1a = 0;
+    Us(V, g, U, k, h, n, H, t0, input.lam, input.L, input.Q, input.b, input.a0, input.dP, input.mu);
+
+    for (int i = 0; i < n; i++) U0a += U[i];
+    U0a /= n;
+
+    for (int i = 0; i < n; i++) sum += pow((U[i] / U0a) - 1, 2);
+    S0d = sqrt(sum / n);
+    cout << "Среднеквадратичное отклонение до: " << S0d << endl;
+
+    Us(V, g, U, k, h, n, H, tk * 86400, input.lam, input.L, input.Q, input.b, input.a0, input.dP, input.mu);
+    for (int i = 0; i < n; i++) U1a += U[i];
+    U1a /= n;
+
+    sum = 0;
+    for (int i = 0; i < n; i++) sum += pow((U[i] / U0a) - (U1a / U0a), 2);
+    S1d = sqrt(sum / n);
+    cout << "\nСреднеквадратичное отклонение после: " << S1d;
+    cout << "\nРазница: R10 = " << S0d - S1d << endl;
+
+    // Вывод скоростей по дням
+    for (int i = 0; i <= tk; i++) {
+        Us(V, g, U, k, h, n, H, i * 86400, input.lam, input.L, input.Q, input.b, input.a0, input.dP, input.mu);
+        cout << "\nСкорость за " << i << " день:\n";
+        cout << "U1 = " << U[0] << "\nU2 = " << U[1] << "\nU3 = " << U[2] << endl;
+    }
+
+    delete[] k, h, V, g, U;
     return 0;
 }</pre>
             </div>
