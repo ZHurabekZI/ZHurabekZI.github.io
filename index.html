@@ -6,6 +6,8 @@
     <title>Оптимизация нефтедобычи | Химические реагенты</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         :root {
             --primary: #005f99;
@@ -530,26 +532,10 @@
                 
                 <div class="formula">U<sub>i</sub> = -(k<sub>i</sub> · ΔP) / (μ · g<sub>i</sub> · L)</div>
                 <p>Скорость фильтрации в i-ом пропластке</p>
-
-                <div class="formula">
-            S<sub>0d</sub> = 
-            <span class="sqrt">
-                <span class="sqrt-symbol"></span>
-                <span class="fraction">
-                    <span class="numerator">1</span>
-                    <span class="denominator">N</span>
-                </span>
-                <span class="sum">∑</span>
-                <sub>i</sub>
-                (
-                <span class="fraction">
-                    <span class="numerator">U<sub>i0</sub></span>
-                    <span class="denominator">U<sub>0a</sub></span>
-                </span>
-                - 1)<sup>2</sup>
-            </span>
-        </div>
-            <p>Cреднеквадратичное отклонение до</p>
+                
+                <div class="formula">\[ S_{0d} = \sqrt{\frac{1}{N} \sum_{i} \left( \frac{U_{i0}}{U_{0a}} - 1 \right)^2 } \]</div>
+                
+                <p>Cреднеквадратичное отклонение до</p>
             </div>
             
             <h3>Ключевые параметры модели</h3>
