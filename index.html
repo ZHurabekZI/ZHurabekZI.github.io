@@ -581,12 +581,12 @@
             <p>Модель реализована на языке C++ с использованием следующих алгоритмов:</p>
             
             <div class="code-block">
-<pre>#include <iostream>
-#include <cmath>
-#include <fstream>
-#include <map>
-#include <string>
-#include <sstream>
+<pre>#include iostream
+#include cmath
+#include fstream
+#include map
+#include string
+#include sstream
 using namespace std;
 
 // Структура для хранения входных данных
@@ -601,7 +601,7 @@ struct InputData {
 InputData readInput(const string& filename) {
     ifstream file(filename);
     InputData data;
-    map<string, double*> params = {
+    map string, double* params = {
         {"b", &data.b}, {"a0", &data.a0}, {"l", &data.l}, {"L", &data.L},
         {"lam", &data.lam}, {"dP", &data.dP}, {"mu", &data.mu}, {"Q", &data.Q},
         {"k1", &data.k[0]}, {"k2", &data.k[1]}, {"k3", &data.k[2]},
